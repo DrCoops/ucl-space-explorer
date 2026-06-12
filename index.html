@@ -93,6 +93,27 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:#378ADD}
 .note-sm{font-size:11px;color:var(--tx2);margin-top:.5rem}
 .note{font-size:11px;color:var(--tx2);margin-top:.4rem;font-style:italic}
 .bench-wrap{margin-bottom:1rem}
+/* profile pane */
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem}
+.prof-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:.9rem;flex-wrap:wrap}
+.prof-ctrl label{font-size:12px;color:var(--tx1)}
+.dist-bars{display:flex;flex-direction:column;gap:6px}
+.dist-row{display:flex;align-items:center;gap:8px}
+.dist-lbl{font-size:11px;color:var(--tx1);width:80px;min-width:80px;text-align:right}
+.dist-track{flex:1;height:20px;background:var(--bg1);border-radius:3px;overflow:hidden;position:relative}
+.dist-seg-small{height:100%;float:left;background:#378ADD;opacity:.8}
+.dist-seg-large{height:100%;float:left;background:#1D9E75}
+.dist-val{font-size:10px;color:var(--tx1);min-width:60px}
+.dist-lgd{display:flex;gap:12px;font-size:11px;color:var(--tx1);margin-top:.5rem}
+.lpp-row{display:flex;align-items:center;gap:6px}
+.lpp-lbl{width:160px;min-width:160px;font-size:11px;text-align:right;color:var(--tx1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lpp-lbl.focus{color:var(--tx0);font-weight:500}
+.lpp-track{flex:1;height:16px;background:var(--bg1);border-radius:2px;overflow:hidden;display:flex}
+.lpp-seg-s{height:100%;background:#378ADD;opacity:.75}
+.lpp-seg-l{height:100%;background:#1D9E75}
+.lpp-val{font-size:10px;color:var(--tx1);min-width:40px}
+.lpp-val.focus{color:var(--tx0);font-weight:500}
+@media(max-width:640px){.profile-grid{grid-template-columns:1fr}}
 .rep-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:.6rem;flex-wrap:wrap}
 .rep-ctrl label{font-size:12px;color:var(--tx1)}
 .rep-ctrl select{width:auto}
@@ -189,6 +210,7 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
 
     <div class="tabs">
       <button class="tab active" data-pane="explore">Explore</button>
+      <button class="tab" data-pane="profile">Lab profile</button>
       <button class="tab" data-pane="validate">Validate &amp; rate spaces</button>
     </div>
 
@@ -262,6 +284,53 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
         <p class="bench-note">No UK-specific pedagogical minimum for engineering teaching labs is formally published by IMechE, IChemE or AUDE. Figures above are the closest available reference points. Values apply to teaching lab and workshop space only; normalised against the selected student cohort (UG intake, PGT, or UG+PGT). Staff FTE and absolute m² views do not show this table.</p>
       </div>
 
+    </div>
+
+    <!-- ═══ PROFILE PANE ═══ -->
+    <div class="pane" id="pane-profile">
+
+      <div class="prof-ctrl">
+        <label>Department</label><select id="p-dept"></select>
+        <label style="margin-left:8px">Compare against</label>
+        <select id="p-scope">
+          <option value="fes">Faculty of Engineering Science</option>
+          <option value="faculty">Same faculty</option>
+          <option value="lab">All depts with tech space</option>
+        </select>
+        <label style="margin-left:8px">Small / med-large threshold</label>
+        <select id="p-thresh">
+          <option value="20" selected>&lt; 20 m² / ≥ 20 m²</option>
+          <option value="50">&lt; 50 m² / ≥ 50 m²</option>
+          <option value="100">&lt; 100 m² / ≥ 100 m²</option>
+        </select>
+      </div>
+
+      <div class="profile-grid">
+
+        <!-- labs per professor -->
+        <div class="cbox full">
+          <h3>Labs per professor (Level 10) — small vs med-large</h3>
+          <div id="lpp-chart"><div class="no-data">Select a department</div></div>
+          <div class="dist-lgd" style="margin-top:.75rem">
+            <span><span class="ldot" style="background:#378ADD;opacity:.75"></span>Small (&lt; threshold)</span>
+            <span><span class="ldot" style="background:#1D9E75"></span>Med-large (≥ threshold)</span>
+            <span style="color:var(--tx2);font-style:italic">· departments without Level 10 FTE data are omitted</span>
+          </div>
+        </div>
+
+        <!-- size distribution: focus dept -->
+        <div class="cbox">
+          <h3>Size distribution — <span id="dist-dept-name">focus dept</span></h3>
+          <div id="dist-chart"><div class="no-data">Select a department</div></div>
+        </div>
+
+        <!-- size distribution: comparison -->
+        <div class="cbox">
+          <h3>Size distribution — comparison group medians</h3>
+          <div id="dist-compare"><div class="no-data">Select a department</div></div>
+        </div>
+
+      </div>
     </div>
 
     <!-- ═══ VALIDATE PANE ═══ -->
@@ -841,9 +910,144 @@ function fmtDate(iso){
 }
 function stars(n){ return n?'★'.repeat(+n)+'☆'.repeat(5-(+n)):'—'; }
 
+// ── PROFILE PANE ─────────────────────────────────────────────────────────────
+
+function getProfileScope(scope, dept){
+  const fac=(DATA.depts[dept]||{}).fac;
+  if(scope==='fes') return DATA.fes.filter(d=>DATA.depts[d]);
+  if(scope==='faculty') return fac?Object.keys(DATA.depts).filter(d=>DATA.depts[d].fac===fac):Object.keys(DATA.depts);
+  return Object.keys(DATA.depts);
+}
+
+function spaceSizes(dept){
+  return (DATA.depts[dept]||{}).spaces||[];
+}
+
+function sizeBuckets(spaces, thresh){
+  const small = spaces.filter(s=>s.eff<thresh);
+  const large = spaces.filter(s=>s.eff>=thresh);
+  return {small, large,
+    nSmall: small.length, nLarge: large.length,
+    mSmall: small.length ? Math.round(small.reduce((a,s)=>a+s.eff,0)/small.length*10)/10 : null,
+    mLarge: large.length ? Math.round(large.reduce((a,s)=>a+s.eff,0)/large.length*10)/10 : null
+  };
+}
+
+// histogram bins for one dept
+function sizeHistogram(spaces){
+  const bins=[
+    {lbl:'5–9',lo:5,hi:10},
+    {lbl:'10–19',lo:10,hi:20},
+    {lbl:'20–49',lo:20,hi:50},
+    {lbl:'50–99',lo:50,hi:100},
+    {lbl:'100–199',lo:100,hi:200},
+    {lbl:'200+',lo:200,hi:Infinity}
+  ];
+  return bins.map(b=>({
+    ...b,
+    n: spaces.filter(s=>s.eff>=b.lo&&s.eff<b.hi).length,
+    m2: Math.round(spaces.filter(s=>s.eff>=b.lo&&s.eff<b.hi).reduce((a,s)=>a+s.eff,0))
+  }));
+}
+
+function renderProfile(){
+  const dept = document.getElementById('p-dept').value;
+  const scope = document.getElementById('p-scope').value;
+  const thresh = parseFloat(document.getElementById('p-thresh').value);
+  if(!dept||!DATA.depts[dept]) return;
+
+  document.getElementById('dist-dept-name').textContent = shortName(dept);
+
+  const scopeDepts = getProfileScope(scope, dept);
+
+  // ── Labs per professor chart ───────────────────────────────────────────────
+  const lppItems = scopeDepts.map(d=>{
+    const info = DATA.depts[d];
+    if(!info) return null;
+    const l10 = (info.fte||{}).level10;
+    if(!l10||l10<=0) return null;
+    const {nSmall,nLarge} = sizeBuckets(spaceSizes(d), thresh);
+    return {d, l10, nSmall, nLarge, total:nSmall+nLarge,
+      lppS: Math.round(nSmall/l10*10)/10,
+      lppL: Math.round(nLarge/l10*10)/10,
+      lpp:  Math.round((nSmall+nLarge)/l10*10)/10,
+      f: d===dept};
+  }).filter(Boolean).sort((a,b)=>b.lpp-a.lpp);
+
+  const maxLpp = Math.max(...lppItems.map(x=>x.lpp), 0.1);
+  const lppEl = document.getElementById('lpp-chart');
+
+  if(!lppItems.length){
+    lppEl.innerHTML='<div class="no-data">No departments with Level 10 FTE data in this scope</div>';
+  } else {
+    lppEl.innerHTML=`<div class="bar-chart" style="margin-top:.25rem">${lppItems.map(x=>{
+      const wS = Math.round(x.lppS/maxLpp*100);
+      const wL = Math.round(x.lppL/maxLpp*100);
+      return `<div class="lpp-row">
+        <div class="lpp-lbl ${x.f?'focus':''}" title="${x.d}">${shortName(x.d)}${x.f?' ◀':''}</div>
+        <div class="lpp-track">
+          <div class="lpp-seg-s" style="width:${wS}%" title="Small labs: ${x.nSmall} (${x.lppS}/prof)"></div>
+          <div class="lpp-seg-l" style="width:${wL}%" title="Med-large labs: ${x.nLarge} (${x.lppL}/prof)"></div>
+        </div>
+        <span class="lpp-val ${x.f?'focus':''}">${x.lpp}×</span>
+      </div>`;
+    }).join('')}</div>
+    <p class="note" style="margin-top:.5rem">Bar split: blue = small (<${thresh}m²), green = med-large (≥${thresh}m²) · value = total spaces per Level 10 professor</p>`;
+  }
+
+  // ── Size distribution: focus dept ─────────────────────────────────────────
+  const focusSpaces = spaceSizes(dept);
+  renderDistChart('dist-chart', focusSpaces, thresh, true);
+
+  // ── Size distribution: comparison medians ─────────────────────────────────
+  // For each bin, compute median count across scope depts
+  const bins = sizeHistogram(focusSpaces).map(b=>b); // just get bin defs
+  const compDists = scopeDepts.map(d=>sizeHistogram(spaceSizes(d)));
+
+  // median n per bin across scope
+  const medianDist = bins.map((b,i)=>{
+    const vals = compDists.map(dist=>dist[i].n).sort((a,z)=>a-z);
+    const mid = Math.floor(vals.length/2);
+    const median = vals.length%2===0 ? (vals[mid-1]+vals[mid])/2 : vals[mid];
+    return {...b, n:Math.round(median*10)/10};
+  });
+
+  renderDistChartData('dist-compare', medianDist, thresh, false);
+}
+
+function renderDistChart(id, spaces, thresh, isFocus){
+  renderDistChartData(id, sizeHistogram(spaces), thresh, isFocus);
+}
+
+function renderDistChartData(id, bins, thresh, isFocus){
+  const total = bins.reduce((a,b)=>a+b.n, 0);
+  const maxN = Math.max(...bins.map(b=>b.n), 0.1);
+  const el = document.getElementById(id);
+  if(total===0){ el.innerHTML='<div class="no-data">No spaces recorded</div>'; return; }
+
+  el.innerHTML=`<div class="dist-bars">${bins.map(b=>{
+    const isSmall = b.lo < thresh;
+    const col = isSmall ? '#378ADD' : '#1D9E75';
+    const op = isSmall ? 'opacity:.8' : '';
+    const w = Math.round(b.n/maxN*100);
+    const pct = total>0 ? Math.round(b.n/total*100) : 0;
+    const label = isFocus
+      ? `${b.n} space${b.n!==1?'s':''} (${pct}%)`
+      : `median ${b.n}`;
+    return `<div class="dist-row">
+      <div class="dist-lbl">${b.lbl} m²</div>
+      <div class="dist-track">
+        <div style="width:${w}%;height:100%;background:${col};${op}"></div>
+      </div>
+      <span class="dist-val">${label}</span>
+    </div>`;
+  }).join('')}</div>
+  <p class="note" style="margin-top:.4rem">${isFocus?`${total} spaces total · threshold at ${thresh}m²`:`Median counts across comparison group`}</p>`;
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 function populateSelects(){
-  [document.getElementById('sel-dept'), document.getElementById('v-dept')].forEach((sel,i)=>{
+  [document.getElementById('sel-dept'), document.getElementById('v-dept'), document.getElementById('p-dept')].forEach((sel,i)=>{
     const g1=document.createElement('optgroup'); g1.label='Faculty of Engineering Science';
     DATA.fes.filter(d=>DATA.depts[d]).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=shortName(d);g1.appendChild(o);});
     sel.appendChild(g1);
@@ -869,6 +1073,7 @@ function init(data){
       this.classList.add('active');
       document.getElementById('pane-'+this.dataset.pane).classList.add('active');
       if(this.dataset.pane==='validate') renderValidateTable();
+      if(this.dataset.pane==='profile') renderProfile();
     });
   });
 
@@ -879,6 +1084,7 @@ function init(data){
 
   // Validate listeners
   document.getElementById('v-dept').addEventListener('change',renderValidateTable);
+  ['p-dept','p-scope','p-thresh'].forEach(id=>document.getElementById(id).addEventListener('change',renderProfile));
   initSortHeaders();
   document.getElementById('u-name').addEventListener('change',saveUser);
   document.getElementById('u-role').addEventListener('change',saveUser);
