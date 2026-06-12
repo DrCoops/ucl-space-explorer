@@ -228,40 +228,68 @@ function getScope(scope, dept){
 function renderExcl(dept){
   document.getElementById('excl-dept-name').textContent=shortName(dept);
   const info=DATA.depts[dept];
+  const listEl=document.getElementById('excl-list');
+  const noteEl=document.getElementById('excl-note');
   if(!info||!info.spaces||!info.spaces.length){
-    document.getElementById('excl-list').innerHTML='<div class="no-data">No named spaces available</div>';
-    document.getElementById('excl-note').textContent='';
+    listEl.innerHTML='<div class="no-data">No named spaces available</div>';
+    noteEl.textContent='';
     return;
   }
   const ex=exclUidsFor(dept);
   let exEff=0, totEff=0;
   for(const s of info.spaces){ totEff+=s.eff; if(ex.has(s.uid)) exEff+=s.eff; }
 
-  document.getElementById('excl-list').innerHTML=info.spaces.map(s=>{
+  // Build DOM nodes directly — no inline handlers, no string escaping issues
+  listEl.innerHTML='';
+  info.spaces.forEach(s=>{
     const key=dept+'|'+s.uid;
-    const chk=excluded.has(key)?'checked':'';
     const bc=s.teach&&s.res?'bt-both':s.teach?'bt-teach':'bt-res';
     const bt=s.teach&&s.res?'teach+res':s.teach?'teaching':'research';
-    return `<label class="ei">
-      <input type="checkbox" ${chk} onchange="window._excl(this,'${CSS.escape(key)}')">
-      <span class="badge ${bc}">${bt}</span>
-      <span style="flex:1">${s.lbl}</span>
-      <span style="color:var(--tx2);font-size:11px;flex-shrink:0">${Math.round(s.eff)} m²</span>
-    </label>`;
-  }).join('');
 
+    const label=document.createElement('label');
+    label.className='ei';
+
+    const cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.checked=excluded.has(key);
+    cb.addEventListener('change',function(){
+      if(this.checked) excluded.add(key); else excluded.delete(key);
+      updateExclNote(dept);
+      render();
+    });
+
+    const badge=document.createElement('span');
+    badge.className='badge '+bc;
+    badge.textContent=bt;
+
+    const name=document.createElement('span');
+    name.style.flex='1';
+    name.textContent=s.lbl;
+
+    const size=document.createElement('span');
+    size.style.cssText='color:var(--tx2);font-size:11px;flex-shrink:0';
+    size.textContent=Math.round(s.eff)+' m²';
+
+    label.appendChild(cb);
+    label.appendChild(badge);
+    label.appendChild(name);
+    label.appendChild(size);
+    listEl.appendChild(label);
+  });
+
+  updateExclNote(dept);
+}
+
+function updateExclNote(dept){
+  const info=DATA.depts[dept];
+  if(!info||!info.spaces) return;
+  const ex=exclUidsFor(dept);
+  let exEff=0, totEff=0;
+  for(const s of info.spaces){ totEff+=s.eff; if(ex.has(s.uid)) exEff+=s.eff; }
   document.getElementById('excl-note').textContent=
     exEff>0 ? `Excluding ${Math.round(exEff)} m² of ${Math.round(totEff)} m² listed`
              : `${info.spaces.length} spaces listed · none excluded`;
 }
-
-window._excl=function(el,key){
-  // CSS.escape was used above; recover actual key
-  const actualKey=el.closest('label').querySelector('input').getAttribute('onchange')
-    .match(/'([^']+)'/)[1];
-  if(el.checked) excluded.add(actualKey); else excluded.delete(actualKey);
-  render();
-};
 
 function renderBars(id, items, norm){
   if(!items.length){ document.getElementById(id).innerHTML='<div class="no-data">No data for this selection</div>'; return; }
