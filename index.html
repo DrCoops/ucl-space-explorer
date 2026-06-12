@@ -92,6 +92,15 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:#378ADD}
 .badge-rated{background:#EAF3DE;color:#3B6D11}
 .note-sm{font-size:11px;color:var(--tx2);margin-top:.5rem}
 .note{font-size:11px;color:var(--tx2);margin-top:.4rem;font-style:italic}
+.bench-wrap{margin-bottom:1rem}
+.bench-wrap h4{font-size:12px;font-weight:500;color:var(--tx1);margin-bottom:.5rem}
+table.bench-tbl{width:100%;border-collapse:collapse;font-size:12px}
+table.bench-tbl th{text-align:left;padding:5px 8px;font-weight:500;color:var(--tx1);
+  border-bottom:1px solid var(--br1);background:var(--bg1);white-space:nowrap}
+table.bench-tbl td{padding:5px 8px;border-bottom:0.5px solid var(--br1);color:var(--tx0)}
+table.bench-tbl td:nth-child(2){font-weight:500;text-align:right;padding-right:1.5rem}
+table.bench-tbl tr:last-child td{border-bottom:none}
+.bench-note{font-size:11px;color:var(--tx2);margin-top:.6rem;font-style:italic;line-height:1.5}
 .no-data{font-size:12px;color:var(--tx1);padding:.4rem 0;font-style:italic}
 
 /* ── VALIDATE TAB ── */
@@ -216,6 +225,24 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
         <div class="cbox"><h3>Category mix</h3><div id="stack"></div></div>
         <div class="cbox full"><h3 id="compare-h">Comparison</h3><div id="compare"></div></div>
       </div>
+
+      <!-- benchmark reference table -->
+      <div class="bench-wrap" id="bench-wrap" style="display:none">
+        <h4>Space benchmark reference — teaching labs &amp; workshops per student</h4>
+        <table class="bench-tbl">
+          <thead><tr>
+            <th>Level</th><th>m² / student</th><th>Source / basis</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>Safety minimum</td><td>4.6</td><td>NFPA 101 Life Safety Code — fire/occupancy floor</td></tr>
+            <tr><td>UCL estates norm</td><td>6.0</td><td>UCL Space Standards Guidelines (2018) — general lab planning norm</td></tr>
+            <tr><td>US planning standard (engineering)</td><td>11.1</td><td>FICM / UConn Space Planning Guidelines — recommended engineering station allowance (120 ASF)</td></tr>
+            <tr><td>Upper range (heavy equipment)</td><td>16.7</td><td>FICM high end for engineering — large apparatus, workshops (180 ASF)</td></tr>
+          </tbody>
+        </table>
+        <p class="bench-note">No UK-specific pedagogical minimum for engineering teaching labs is formally published by IMechE, IChemE or AUDE. Figures above are the closest available reference points. Values apply to teaching lab and workshop space only; normalised against the selected student cohort (UG intake, PGT, or UG+PGT). Staff FTE and absolute m² views do not show this table.</p>
+      </div>
+
     </div>
 
     <!-- ═══ VALIDATE PANE ═══ -->
@@ -456,6 +483,14 @@ function render(){
   document.getElementById('norm-label').textContent=keys.length?'('+keys.map(k=>({ac_res:'staff',pgr:'PGR',intake:'UG',pgt:'PGT'})[k]).join('+')+'FTE)':'(absolute)';
   renderBars('compare',top,keys);
   if(items.length>18) document.getElementById('compare').innerHTML+=`<p class="note">Top 18 of ${items.length} depts${keys.length?' with FTE data':''}</p>`;
+
+  // Show benchmark table only when normalising by a student cohort
+  const studentKeys = ['intake','pgt','ug_pgt'];
+  const activeKeys = getNormKeys();
+  const isStudentNorm = activeKeys.length > 0 && activeKeys.every(k => studentKeys.includes(k));
+  // Also check if using include flags that are teaching-only (tl, tw, tc) — benchmarks only relevant for teaching space
+  const teachingIncluded = document.getElementById('inc-tl').checked || document.getElementById('inc-tw').checked || document.getElementById('inc-tc').checked;
+  document.getElementById('bench-wrap').style.display = (isStudentNorm && teachingIncluded) ? 'block' : 'none';
 }
 
 // ── VALIDATE PANE ────────────────────────────────────────────────────────────
