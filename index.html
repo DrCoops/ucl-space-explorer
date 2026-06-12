@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UCL Space Explorer</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#ffffff;--bg1:#f5f4f0;--bg2:#eeecea;
+  --tx0:#1a1a18;--tx1:#5f5e5a;--tx2:#9e9c96;
+  --br1:rgba(0,0,0,0.12);--br2:rgba(0,0,0,0.22);
+  --r8:8px;--r12:12px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg0:#1e1e1c;--bg1:#2a2a28;--bg2:#252523;
+    --tx0:#f0ede8;--tx1:#9e9c96;--tx2:#6b6a66;
+    --br1:rgba(255,255,255,0.1);--br2:rgba(255,255,255,0.2);
+  }
+}
+body{font-family:var(--sans);background:var(--bg2);color:var(--tx0);min-height:100vh}
+#shell{max-width:960px;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+header{margin-bottom:1.5rem}
+header h1{font-size:20px;font-weight:500}
+header p{font-size:13px;color:var(--tx1);margin-top:3px}
+#loading{font-size:13px;color:var(--tx1);padding:2rem 0}
+
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.9rem}
+.ctrl{display:flex;flex-direction:column;gap:4px}
+.lbl{font-size:12px;color:var(--tx1)}
+select{background:var(--bg0);color:var(--tx0);border:0.5px solid var(--br2);border-radius:var(--r8);
+  padding:6px 10px;font-size:13px;cursor:pointer;width:100%}
+select:hover{border-color:var(--br2)}
+
+.toggle-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;
+  background:var(--bg1);border-radius:var(--r8);padding:.5rem .75rem}
+.titem{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer}
+.titem input{cursor:pointer}
+.tlabel{font-size:12px;color:var(--tx1);margin-right:4px}
+
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.mc{background:var(--bg1);border-radius:var(--r8);padding:.6rem .9rem}
+.mc .v{font-size:21px;font-weight:500;margin-top:3px;color:var(--tx0)}
+.mc .l{font-size:11px;color:var(--tx1)}
+.mc .s{font-size:11px;color:var(--tx2);margin-top:1px}
+
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem}
+.cbox{background:var(--bg0);border:0.5px solid var(--br1);border-radius:var(--r12);padding:.9rem 1rem}
+.cbox h3{font-size:12px;font-weight:500;color:var(--tx1);margin-bottom:.7rem}
+.full{grid-column:1/-1}
+
+.bar-chart{display:flex;flex-direction:column;gap:3px}
+.bar-row{display:flex;align-items:center;gap:6px}
+.bl{width:160px;min-width:160px;font-size:11px;text-align:right;color:var(--tx1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bl.focus{color:var(--tx0);font-weight:500}
+.bt{flex:1;height:16px;background:var(--bg1);border-radius:2px;overflow:hidden}
+.bf{height:100%;border-radius:2px;transition:width .2s}
+.bv{font-size:10px;color:var(--tx1);min-width:52px}
+.bv.focus{color:var(--tx0);font-weight:500}
+
+.stk{display:flex;height:20px;border-radius:3px;overflow:hidden;margin:.4rem 0}
+.seg{transition:width .2s}
+.lgd{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--tx1)}
+.ldot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
+
+.excl-panel{background:var(--bg0);border:0.5px solid var(--br1);border-radius:var(--r12);
+  padding:.8rem 1rem;margin-bottom:1rem}
+.excl-panel h3{font-size:12px;font-weight:500;color:var(--tx1);margin-bottom:.6rem}
+.excl-list{display:flex;flex-direction:column;gap:3px;max-height:210px;overflow-y:auto}
+.ei{display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 4px;
+  border-radius:4px;cursor:pointer;color:var(--tx0)}
+.ei:hover{background:var(--bg1)}
+.badge{font-size:10px;padding:1px 6px;border-radius:10px;flex-shrink:0}
+.bt-teach{background:#E6F1FB;color:#185FA5}
+.bt-res{background:#EAF3DE;color:#3B6D11}
+.bt-both{background:#FAEEDA;color:#854F0B}
+.excl-note{font-size:11px;color:var(--tx2);margin-top:.5rem}
+
+.note{font-size:11px;color:var(--tx2);margin-top:.4rem;font-style:italic}
+.no-data{font-size:12px;color:var(--tx1);padding:.4rem 0;font-style:italic}
+
+@media(max-width:640px){
+  .row3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+  .chart-grid{grid-template-columns:1fr}
+  .full{grid-column:1}
+  .bl{width:120px;min-width:120px}
+}
+</style>
+</head>
+<body>
+<div id="shell">
+  <header>
+    <h1>UCL Space Explorer</h1>
+    <p>Technical teaching and research space by department — UCL Estates data</p>
+  </header>
+  <div id="loading">Loading space data…</div>
+  <div id="app" style="display:none">
+
+    <div class="row3">
+      <div class="ctrl"><span class="lbl">Focus department</span><select id="sel-dept"></select></div>
+      <div class="ctrl"><span class="lbl">Compare against</span>
+        <select id="sel-scope">
+          <option value="fes">Faculty of Engineering Science</option>
+          <option value="faculty">Same faculty</option>
+          <option value="lab">All depts with tech space</option>
+        </select>
+      </div>
+      <div class="ctrl"><span class="lbl">Normalise by</span>
+        <select id="sel-norm">
+          <option value="raw">Absolute (m²)</option>
+          <option value="ac_res">Academic + research staff FTE</option>
+          <option value="pgr">PGR students</option>
+          <option value="intake">UG intake</option>
+          <option value="pgt">PGT students</option>
+          <option value="ug_pgt">UG + PGT combined</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <span class="tlabel">Include:</span>
+      <label class="titem"><input type="checkbox" id="inc-tl" checked> Teaching labs</label>
+      <label class="titem"><input type="checkbox" id="inc-tw" checked> Teaching workshops</label>
+      <label class="titem"><input type="checkbox" id="inc-tc"> Teaching computer labs</label>
+      <label class="titem"><input type="checkbox" id="inc-rl"> Research labs</label>
+      <label class="titem"><input type="checkbox" id="inc-rw"> Research workshops</label>
+    </div>
+
+    <div class="excl-panel">
+      <h3>Exclude specific spaces — <span id="excl-dept-name"></span></h3>
+      <div class="excl-list" id="excl-list"></div>
+      <div class="excl-note" id="excl-note"></div>
+    </div>
+
+    <div class="metrics" id="metrics"></div>
+
+    <div class="chart-grid">
+      <div class="cbox"><h3>Space breakdown — focus dept</h3><div id="breakdown"></div></div>
+      <div class="cbox"><h3>Category mix</h3><div id="stack"></div></div>
+      <div class="cbox full"><h3 id="compare-h">Comparison</h3><div id="compare"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+
+const COLORS = {tl:'#378ADD',tw:'#BA7517',tc:'#534AB7',rl:'#1D9E75',rw:'#885533'};
+const excluded = new Set();
+let DATA = null;
+
+function shortName(d){
+  return d.replace(/^Dept of /,'').replace(/^Division of /,'').replace(/^Div of /,'')
+    .replace(/^The /,'').replace(/^UCL /,'').replace(/^Institute of /,'Inst ');
+}
+
+function getInclFlags(){
+  return {
+    tl:document.getElementById('inc-tl').checked,
+    tw:document.getElementById('inc-tw').checked,
+    tc:document.getElementById('inc-tc').checked,
+    rl:document.getElementById('inc-rl').checked,
+    rw:document.getElementById('inc-rw').checked
+  };
+}
+
+function exclUidsFor(dept){
+  return new Set([...excluded].filter(u=>u.startsWith(dept+'|')).map(u=>u.split('|').slice(1).join('|')));
+}
+
+function computeTech(dept){
+  const info = DATA.depts[dept];
+  if(!info) return {tl:0,tw:0,tc:0,rl:0,rw:0};
+  const ex = exclUidsFor(dept);
+  let tl=0,tw=0,tc=0,rl=0,rw=0;
+  for(const s of info.spaces){
+    if(ex.has(s.uid)) continue;
+    if(s.teach){
+      if(s.cat==='lab') tl+=s.eff;
+      else if(s.cat==='workshop') tw+=s.eff;
+      else if(s.cat==='computer') tc+=s.eff;
+    }
+    if(s.res){
+      if(s.cat==='lab') rl+=s.eff;
+      else if(s.cat==='workshop') rw+=s.eff;
+    }
+  }
+  return {tl,tw,tc,rl,rw};
+}
+
+function inclTotal(vals){
+  const f=getInclFlags();
+  return (f.tl?vals.tl:0)+(f.tw?vals.tw:0)+(f.tc?vals.tc:0)+(f.rl?vals.rl:0)+(f.rw?vals.rw:0);
+}
+
+function getNorm(dept, norm, vals){
+  const fte=(DATA.depts[dept]||{}).fte||{};
+  if(norm==='raw') return inclTotal(vals);
+  let n;
+  if(norm==='ac_res') n=fte.ac_res;
+  else if(norm==='pgr') n=fte.pgr;
+  else if(norm==='intake') n=fte.intake;
+  else if(norm==='pgt') n=fte.pgt;
+  else if(norm==='ug_pgt') n=(fte.intake||0)+(fte.pgt||0);
+  if(!n||n<=0) return null;
+  return inclTotal(vals)/n;
+}
+
+function fmt(v,norm){
+  if(v===null) return '—';
+  if(norm==='raw') return Math.round(v).toLocaleString()+' m²';
+  return (Math.round(v*10)/10)+' m²/FTE';
+}
+
+function getScope(scope, dept){
+  const fac=(DATA.depts[dept]||{}).fac;
+  if(scope==='fes') return DATA.fes.filter(d=>DATA.depts[d]);
+  if(scope==='faculty') return fac ? Object.keys(DATA.depts).filter(d=>DATA.depts[d].fac===fac) : Object.keys(DATA.depts);
+  return Object.keys(DATA.depts);
+}
+
+function renderExcl(dept){
+  document.getElementById('excl-dept-name').textContent=shortName(dept);
+  const info=DATA.depts[dept];
+  if(!info||!info.spaces||!info.spaces.length){
+    document.getElementById('excl-list').innerHTML='<div class="no-data">No named spaces available</div>';
+    document.getElementById('excl-note').textContent='';
+    return;
+  }
+  const ex=exclUidsFor(dept);
+  let exEff=0, totEff=0;
+  for(const s of info.spaces){ totEff+=s.eff; if(ex.has(s.uid)) exEff+=s.eff; }
+
+  document.getElementById('excl-list').innerHTML=info.spaces.map(s=>{
+    const key=dept+'|'+s.uid;
+    const chk=excluded.has(key)?'checked':'';
+    const bc=s.teach&&s.res?'bt-both':s.teach?'bt-teach':'bt-res';
+    const bt=s.teach&&s.res?'teach+res':s.teach?'teaching':'research';
+    return `<label class="ei">
+      <input type="checkbox" ${chk} onchange="window._excl(this,'${CSS.escape(key)}')">
+      <span class="badge ${bc}">${bt}</span>
+      <span style="flex:1">${s.lbl}</span>
+      <span style="color:var(--tx2);font-size:11px;flex-shrink:0">${Math.round(s.eff)} m²</span>
+    </label>`;
+  }).join('');
+
+  document.getElementById('excl-note').textContent=
+    exEff>0 ? `Excluding ${Math.round(exEff)} m² of ${Math.round(totEff)} m² listed`
+             : `${info.spaces.length} spaces listed · none excluded`;
+}
+
+window._excl=function(el,key){
+  // CSS.escape was used above; recover actual key
+  const actualKey=el.closest('label').querySelector('input').getAttribute('onchange')
+    .match(/'([^']+)'/)[1];
+  if(el.checked) excluded.add(actualKey); else excluded.delete(actualKey);
+  render();
+};
+
+function renderBars(id, items, norm){
+  if(!items.length){ document.getElementById(id).innerHTML='<div class="no-data">No data for this selection</div>'; return; }
+  const mx=Math.max(...items.map(x=>x.v),1);
+  document.getElementById(id).innerHTML=`<div class="bar-chart">${
+    items.map(x=>`<div class="bar-row">
+      <div class="bl ${x.f?'focus':''}" title="${x.d}">${shortName(x.d)}${x.f?' ◀':''}</div>
+      <div class="bt"><div class="bf" style="width:${Math.round(x.v/mx*100)}%;background:${x.f?'#185FA5':'#1D9E75'}"></div></div>
+      <span class="bv ${x.f?'focus':''}">${fmt(x.v,norm)}</span>
+    </div>`).join('')
+  }</div>`;
+}
+
+function render(){
+  const dept=document.getElementById('sel-dept').value;
+  const scope=document.getElementById('sel-scope').value;
+  const norm=document.getElementById('sel-norm').value;
+  if(!dept||!DATA.depts[dept]) return;
+
+  renderExcl(dept);
+
+  const vals=computeTech(dept);
+  const f=getInclFlags();
+  const fte=(DATA.depts[dept]||{}).fte||{};
+
+  const teachTot=(f.tl?vals.tl:0)+(f.tw?vals.tw:0)+(f.tc?vals.tc:0);
+  const resTot=(f.rl?vals.rl:0)+(f.rw?vals.rw:0);
+  const normVal=getNorm(dept,norm,vals);
+  const normLbl=norm==='raw'?'Tech space (m²)':norm==='ac_res'?'m² / staff FTE':
+    norm==='pgr'?'m² / PGR':norm==='pgt'?'m² / PGT':norm==='intake'?'m² / UG intake':'m² / UG+PGT';
+
+  document.getElementById('metrics').innerHTML=`
+    <div class="mc"><div class="l">Teaching tech space</div><div class="v">${Math.round(teachTot).toLocaleString()}</div><div class="s">m²</div></div>
+    <div class="mc"><div class="l">Research tech space</div><div class="v">${Math.round(resTot).toLocaleString()}</div><div class="s">m²</div></div>
+    <div class="mc"><div class="l">${normLbl}</div>
+      <div class="v">${norm==='raw'?Math.round(inclTotal(vals)).toLocaleString():normVal!==null?(Math.round(normVal*10)/10):'—'}</div>
+      <div class="s">${norm==='raw'?'selected total':normVal!==null?'normalised':'no FTE data'}</div></div>
+    <div class="mc"><div class="l">Ac+res staff FTE</div>
+      <div class="v">${fte.ac_res||'—'}</div>
+      <div class="s">${[fte.pgr?fte.pgr+' PGR':'',fte.intake?fte.intake+' UG intake':''].filter(Boolean).join(' · ')||'no FTE data'}</div></div>
+  `;
+
+  // Breakdown
+  const cats=[
+    {l:'Teaching labs',v:f.tl?vals.tl:0,c:COLORS.tl},
+    {l:'Teaching workshops',v:f.tw?vals.tw:0,c:COLORS.tw},
+    {l:'Computer labs',v:f.tc?vals.tc:0,c:COLORS.tc},
+    {l:'Research labs',v:f.rl?vals.rl:0,c:COLORS.rl},
+    {l:'Research workshops',v:f.rw?vals.rw:0,c:COLORS.rw},
+  ].filter(c=>c.v>0);
+  const maxB=Math.max(...cats.map(c=>c.v),1);
+  document.getElementById('breakdown').innerHTML=cats.length?`<div class="bar-chart">${cats.map(c=>`
+    <div class="bar-row">
+      <div class="bl" style="color:var(--tx0)">${c.l}</div>
+      <div class="bt"><div class="bf" style="width:${Math.round(c.v/maxB*100)}%;background:${c.c}"></div></div>
+      <span class="bv">${Math.round(c.v).toLocaleString()} m²</span>
+    </div>`).join('')}</div>`
+    :'<div class="no-data">No categories selected</div>';
+
+  // Stack
+  const allV=cats.reduce((s,c)=>s+c.v,0);
+  document.getElementById('stack').innerHTML=allV>0?`
+    <div class="stk">${cats.map(c=>`<div class="seg" style="width:${Math.round(c.v/allV*100)}%;background:${c.c}" title="${c.l}: ${Math.round(c.v)}m²"></div>`).join('')}</div>
+    <div class="lgd">${cats.map(c=>`<span><span class="ldot" style="background:${c.c}"></span>${c.l} ${Math.round(c.v/allV*100)}%</span>`).join('')}</div>
+  `:'<div class="no-data">No categories selected</div>';
+
+  // Compare
+  const scopeDepts=getScope(scope,dept);
+  const items=scopeDepts.map(d=>{
+    const v=getNorm(d,norm,computeTech(d));
+    return {d,v,f:d===dept};
+  }).filter(x=>x.v!==null&&x.v>=0).sort((a,b)=>b.v-a.v);
+  const top=items.slice(0,18);
+  const normH={raw:'Technical space (m²)',ac_res:'m² per academic/research FTE',pgr:'m² per PGR student',
+    intake:'m² per UG intake',pgt:'m² per PGT student',ug_pgt:'m² per UG+PGT student'}[norm];
+  document.getElementById('compare-h').textContent=normH;
+  renderBars('compare',top,norm);
+  if(items.length>18) document.getElementById('compare').innerHTML+=`<p class="note">Top 18 of ${items.length} depts${norm!=='raw'?' with FTE data':''}</p>`;
+}
+
+function populateSelect(){
+  const sel=document.getElementById('sel-dept');
+  const g1=document.createElement('optgroup'); g1.label='Faculty of Engineering Science';
+  DATA.fes.filter(d=>DATA.depts[d]).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=shortName(d);g1.appendChild(o);});
+  sel.appendChild(g1);
+  const g2=document.createElement('optgroup'); g2.label='All other departments';
+  Object.keys(DATA.depts).filter(d=>!DATA.fes.includes(d)).sort().forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=shortName(d);g2.appendChild(o);});
+  sel.appendChild(g2);
+  sel.value='Dept of Mechanical Engineering';
+}
+
+function init(data){
+  DATA=data;
+  document.getElementById('loading').style.display='none';
+  document.getElementById('app').style.display='block';
+  populateSelect();
+  ['sel-dept','sel-scope','sel-norm'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+  ['inc-tl','inc-tw','inc-tc','inc-rl','inc-rw'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+  render();
+}
+
+// The JSON lives in the same directory as this HTML file
+fetch('./ucl_widget_data.json')
+  .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
+  .then(init)
+  .catch(e=>{
+    document.getElementById('loading').textContent='Failed to load data ('+e.message+'). Make sure ucl_widget_data.json is in the same folder.';
+  });
+
+})();
+</script>
+</body>
+</html>
