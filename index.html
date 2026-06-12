@@ -261,7 +261,7 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 // Paste your Apps Script web app URL here after deploying
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec';
+const SHEET_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 // ────────────────────────────────────────────────────────────────────────────
 
 const COLORS = {tl:'#378ADD',tw:'#BA7517',tc:'#534AB7',rl:'#1D9E75',rw:'#885533'};
@@ -449,17 +449,23 @@ function renderValidateTable(){
     const use=s.teach&&s.res?'both':s.teach?'teaching':'research';
     const tr=document.createElement('tr');
 
+    // bldg is encoded in uid as "spacenum||Building Name"
+    const bldg=s.uid.includes('||')?s.uid.split('||').slice(1).join('||'):'—';
+    // friendly type label from cat + func
+    const typeLabel=s.cat==='workshop'?'Workshop':s.cat==='computer'?'Computer lab':
+      s.func==='Teaching'?'Teaching lab':'Research lab';
+
     const pillsHTML=(aCount?`<span class="ann-pill badge-amend">${aCount} amendment${aCount>1?'s':''}</span>`:'')+
                     (rCount?`<span class="ann-pill badge-rated">${rCount} rating${rCount>1?'s':''}</span>`:'');
 
     tr.innerHTML=`
       <td>${s.lbl}</td>
-      <td style="color:var(--tx1)">${s.bldg||'—'}</td>
-      <td style="color:var(--tx1);white-space:nowrap">${s.type.replace('Science laboratories','Sci lab').replace('Containment laboratories','Containment lab').replace('Engineering workshops','Eng workshop')}</td>
+      <td style="color:var(--tx1)">${bldg}</td>
+      <td style="color:var(--tx1);white-space:nowrap">${typeLabel}</td>
       <td><span class="badge ${use==='both'?'bt-both':use==='teaching'?'bt-teach':'bt-res'}">${use}</span></td>
       <td style="text-align:right">${Math.round(s.eff)}</td>
       <td>${pillsHTML||'<span style="color:var(--tx2);font-size:11px">none</span>'}</td>
-      <td style="white-space:nowrap;display:flex;gap:4px">
+      <td style="white-space:nowrap">
         <button class="act-btn" data-action="amend" data-uid="${s.uid}" data-lbl="${encodeURIComponent(s.lbl)}">Amend</button>
         <button class="act-btn rate" data-action="rate" data-uid="${s.uid}" data-lbl="${encodeURIComponent(s.lbl)}">Rate</button>
       </td>`;
