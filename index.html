@@ -105,6 +105,10 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:#378ADD}
 table.space-tbl{width:100%;border-collapse:collapse;font-size:12px}
 table.space-tbl th{text-align:left;padding:6px 8px;font-weight:500;color:var(--tx1);
   border-bottom:1px solid var(--br1);white-space:nowrap;background:var(--bg1)}
+table.space-tbl th.sortable{cursor:pointer;user-select:none}
+table.space-tbl th.sortable:hover{color:var(--tx0)}
+table.space-tbl th.sort-asc::after{content:' ↑';font-size:10px}
+table.space-tbl th.sort-desc::after{content:' ↓';font-size:10px}
 table.space-tbl td{padding:5px 8px;border-bottom:0.5px solid var(--br1);vertical-align:middle}
 table.space-tbl tr:hover td{background:var(--bg1)}
 table.space-tbl .act-btn{font-size:11px;padding:3px 8px;border:0.5px solid var(--br2);
@@ -236,9 +240,15 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
         <div id="ann-loading" class="no-data">Loading annotations…</div>
         <div class="space-table-wrap" id="space-table-wrap" style="display:none">
           <table class="space-tbl">
-            <thead><tr>
-              <th>Space</th><th>Building</th><th>Type</th><th>Use</th>
-              <th>m²</th><th>Annotations</th><th></th>
+            <thead id="space-thead"><tr>
+              <th class="sortable" data-col="room">Room</th>
+              <th class="sortable" data-col="name">Space name</th>
+              <th class="sortable" data-col="bldg">Building</th>
+              <th class="sortable" data-col="type">Type</th>
+              <th class="sortable" data-col="use">Use</th>
+              <th class="sortable" data-col="eff" style="text-align:right">m²</th>
+              <th class="sortable" data-col="ann">Annotations</th>
+              <th></th>
             </tr></thead>
             <tbody id="space-tbody"></tbody>
           </table>
@@ -430,6 +440,9 @@ function render(){
 function amendsFor(uid){ return ANNOTATIONS.amendments.filter(a=>a.space_uid===uid); }
 function ratingsFor(uid){ return ANNOTATIONS.ratings.filter(a=>a.space_uid===uid); }
 
+// sort state for validate table
+let vSort = {col: 'eff', dir: 'desc'};
+
 function renderValidateTable(){
   const dept=document.getElementById('v-dept').value;
   if(!dept||!DATA.depts[dept]) return;
@@ -437,32 +450,56 @@ function renderValidateTable(){
   const info=DATA.depts[dept];
   const tbody=document.getElementById('space-tbody');
   tbody.innerHTML='';
+
   if(!info.spaces||!info.spaces.length){
-    tbody.innerHTML='<tr><td colspan="7" class="no-data" style="padding:.75rem">No tech spaces recorded for this department</td></tr>';
+    tbody.innerHTML='<tr><td colspan="8" class="no-data" style="padding:.75rem">No tech spaces recorded for this department</td></tr>';
     document.getElementById('space-table-wrap').style.display='block';
     document.getElementById('ann-loading').style.display='none';
     return;
   }
-  info.spaces.forEach(s=>{
-    const aCount=amendsFor(s.uid).length;
-    const rCount=ratingsFor(s.uid).length;
-    const use=s.teach&&s.res?'both':s.teach?'teaching':'research';
+
+  // Enrich spaces with derived fields for sorting/display
+  const enriched = info.spaces.map(s=>{
+    const room = s.uid.includes('||') ? s.uid.split('||')[0] : s.uid;
+    const bldg = s.uid.includes('||') ? s.uid.split('||').slice(1).join('||') : '—';
+    const typeLabel = s.cat==='workshop' ? 'Workshop' : s.cat==='computer' ? 'Computer lab' :
+      s.func==='Teaching' ? 'Teaching lab' : 'Research lab';
+    const use = s.teach&&s.res ? 'both' : s.teach ? 'teaching' : 'research';
+    const aCount = amendsFor(s.uid).length;
+    const rCount = ratingsFor(s.uid).length;
+    const annCount = aCount + rCount;
+    // Strip the [Building] prefix from lbl for the name column
+    const name = s.lbl.replace(/^\[[^\]]+\]\s*/, '');
+    return {...s, room, bldg, typeLabel, use, aCount, rCount, annCount, name};
+  });
+
+  // Sort
+  const col = vSort.col;
+  const dir = vSort.dir === 'asc' ? 1 : -1;
+  enriched.sort((a, b) => {
+    let av, bv;
+    if(col==='eff' || col==='ann'){ av = col==='eff' ? a.eff : a.annCount; bv = col==='eff' ? b.eff : b.annCount; return dir * (av - bv); }
+    av = (col==='room'?a.room : col==='name'?a.name : col==='bldg'?a.bldg : col==='type'?a.typeLabel : a.use) || '';
+    bv = (col==='room'?b.room : col==='name'?b.name : col==='bldg'?b.bldg : col==='type'?b.typeLabel : b.use) || '';
+    return dir * av.localeCompare(bv);
+  });
+
+  // Update header indicators
+  document.querySelectorAll('#space-thead th.sortable').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.col === col) th.classList.add(vSort.dir==='asc'?'sort-asc':'sort-desc');
+  });
+
+  enriched.forEach(s=>{
     const tr=document.createElement('tr');
-
-    // bldg is encoded in uid as "spacenum||Building Name"
-    const bldg=s.uid.includes('||')?s.uid.split('||').slice(1).join('||'):'—';
-    // friendly type label from cat + func
-    const typeLabel=s.cat==='workshop'?'Workshop':s.cat==='computer'?'Computer lab':
-      s.func==='Teaching'?'Teaching lab':'Research lab';
-
-    const pillsHTML=(aCount?`<span class="ann-pill badge-amend">${aCount} amendment${aCount>1?'s':''}</span>`:'')+
-                    (rCount?`<span class="ann-pill badge-rated">${rCount} rating${rCount>1?'s':''}</span>`:'');
-
+    const pillsHTML=(s.aCount?`<span class="ann-pill badge-amend">${s.aCount} amend${s.aCount>1?'s':''}</span>`:'')+
+                    (s.rCount?`<span class="ann-pill badge-rated">${s.rCount} rating${s.rCount>1?'s':''}</span>`:'');
     tr.innerHTML=`
-      <td>${s.lbl}</td>
-      <td style="color:var(--tx1)">${bldg}</td>
-      <td style="color:var(--tx1);white-space:nowrap">${typeLabel}</td>
-      <td><span class="badge ${use==='both'?'bt-both':use==='teaching'?'bt-teach':'bt-res'}">${use}</span></td>
+      <td style="color:var(--tx2);font-family:monospace;font-size:11px">${s.room}</td>
+      <td>${s.name}</td>
+      <td style="color:var(--tx1)">${s.bldg}</td>
+      <td style="color:var(--tx1);white-space:nowrap">${s.typeLabel}</td>
+      <td><span class="badge ${s.use==='both'?'bt-both':s.use==='teaching'?'bt-teach':'bt-res'}">${s.use}</span></td>
       <td style="text-align:right">${Math.round(s.eff)}</td>
       <td>${pillsHTML||'<span style="color:var(--tx2);font-size:11px">none</span>'}</td>
       <td style="white-space:nowrap">
@@ -472,7 +509,7 @@ function renderValidateTable(){
     tbody.appendChild(tr);
   });
 
-  // Attach button listeners after DOM is built
+  // Button listeners
   tbody.querySelectorAll('.act-btn').forEach(btn=>{
     btn.addEventListener('click',function(){
       const uid=this.dataset.uid;
@@ -485,6 +522,22 @@ function renderValidateTable(){
 
   document.getElementById('space-table-wrap').style.display='block';
   document.getElementById('ann-loading').style.display='none';
+}
+
+function initSortHeaders(){
+  document.getElementById('space-thead').addEventListener('click', function(e){
+    const th = e.target.closest('th.sortable');
+    if(!th) return;
+    const col = th.dataset.col;
+    if(vSort.col === col){
+      vSort.dir = vSort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      vSort.col = col;
+      // default: desc for numeric, asc for text
+      vSort.dir = (col==='eff'||col==='ann') ? 'desc' : 'asc';
+    }
+    renderValidateTable();
+  });
 }
 
 // ── AMEND MODAL ──────────────────────────────────────────────────────────────
@@ -730,6 +783,7 @@ function init(data){
 
   // Validate listeners
   document.getElementById('v-dept').addEventListener('change',renderValidateTable);
+  initSortHeaders();
   document.getElementById('u-name').addEventListener('change',saveUser);
   document.getElementById('u-role').addEventListener('change',saveUser);
 
