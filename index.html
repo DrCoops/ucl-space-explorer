@@ -388,7 +388,7 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 // Paste your Apps Script web app URL here after deploying
-const SHEET_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec';
 // ────────────────────────────────────────────────────────────────────────────
 
 const COLORS = {tl:'#378ADD',tw:'#BA7517',tc:'#534AB7',rl:'#1D9E75',rw:'#885533'};
@@ -845,7 +845,7 @@ function submitAnnotation(payload){
   const btn=document.getElementById('modal-submit');
   btn.disabled=true; btn.textContent='Saving…';
 
-  if(!SHEET_URL||SHEET_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
+  if(!SHEET_URL||SHEET_URL==='https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec'){
     // Demo mode — store locally only
     storeLocal(payload);
     setStatus('Saved locally (no sheet configured — demo mode)','ok');
@@ -890,7 +890,7 @@ function storeLocal(payload){
 }
 
 function refreshAnnotations(){
-  if(!SHEET_URL||SHEET_URL==='YOUR_APPS_SCRIPT_URL_HERE') return;
+  if(!SHEET_URL||SHEET_URL==='https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec') return;
   fetch(SHEET_URL+'?action=all')
     .then(r=>r.json())
     .then(d=>{ if(d.ok){ ANNOTATIONS=d; } })
@@ -1093,7 +1093,7 @@ function init(data){
   document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
 
   // Load annotations then render
-  if(SHEET_URL && SHEET_URL!=='YOUR_APPS_SCRIPT_URL_HERE'){
+  if(SHEET_URL && SHEET_URL!=='https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec'){
     fetch(SHEET_URL+'?action=all')
       .then(r=>r.json())
       .then(d=>{ if(d.ok) ANNOTATIONS=d; })
