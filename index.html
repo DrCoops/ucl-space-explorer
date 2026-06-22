@@ -856,11 +856,29 @@ function submitAnnotation(payload){
   }
 
   fetch(SHEET_URL, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+    method:'POST', mode:'no-cors', mode:'no-cors',
+    headers:{'Content-Type':'text/plain'},
     body:JSON.stringify(payload)
   })
-  .then(r=>r.json())
+  fetch(SHEET_URL, {
+  method:'POST',
+  mode:'no-cors',
+  headers:{'Content-Type':'text/plain'},
+  body:JSON.stringify(payload)
+})
+.then(()=>{
+  storeLocal(payload);
+  setStatus('Saved ✓','ok');
+  btn.textContent='Saved ✓';
+  refreshAnnotations();
+  setTimeout(()=>{ closeModal(); renderValidateTable(); }, 1200);
+})
+.catch(err=>{
+  setStatus('Error: '+err.message+' (saved locally as backup)','err');
+  storeLocal(payload);
+  btn.disabled=false; btn.textContent='Retry';
+});
+.then(r=>r.json())
   .then(res=>{
     if(res.ok){
       storeLocal(payload);
@@ -889,6 +907,12 @@ function storeLocal(payload){
   }
 }
 
+function refreshAnnotations(){
+  fetch(SHEET_URL+'?action=all')
+    .then(r=>r.json())
+    .then(d=>{ if(d.ok){ ANNOTATIONS=d; } })
+    .catch(()=>{});
+}
 function refreshAnnotations(){
   if(!SHEET_URL||SHEET_URL==='https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec') return;
   fetch(SHEET_URL+'?action=all')
