@@ -881,13 +881,6 @@ function refreshAnnotations(){
     .then(d=>{ if(d.ok){ ANNOTATIONS=d; } })
     .catch(()=>{});
 }
-function refreshAnnotations(){
-  if(!SHEET_URL||SHEET_URL==='https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec') return;
-  fetch(SHEET_URL+'?action=all')
-    .then(r=>r.json())
-    .then(d=>{ if(d.ok){ ANNOTATIONS=d; } })
-    .catch(()=>{});
-}
 
 // ── MODAL HELPERS ────────────────────────────────────────────────────────────
 function showModal(){ document.getElementById('modal').style.display='flex'; }
