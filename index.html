@@ -843,60 +843,28 @@ function openRateModal(dept, space, lbl){
 // ── SUBMIT ───────────────────────────────────────────────────────────────────
 function submitAnnotation(payload){
   const btn=document.getElementById('modal-submit');
-  btn.disabled=true; btn.textContent='Saving…';
-
-  if(!SHEET_URL||SHEET_URL==='https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec'){
-    // Demo mode — store locally only
-    storeLocal(payload);
-    setStatus('Saved locally (no sheet configured — demo mode)','ok');
-    btn.textContent='Saved ✓';
-    refreshAnnotations();
-    setTimeout(()=>{ closeModal(); renderValidateTable(); }, 1200);
-    return;
-  }
-
+  btn.disabled=true; btn.textContent='Saving...';
   fetch(SHEET_URL, {
-    method:'POST', mode:'no-cors', mode:'no-cors',
+    method:'POST',
+    mode:'no-cors',
     headers:{'Content-Type':'text/plain'},
     body:JSON.stringify(payload)
   })
-  fetch(SHEET_URL, {
-  method:'POST',
-  mode:'no-cors',
-  headers:{'Content-Type':'text/plain'},
-  body:JSON.stringify(payload)
-})
-.then(()=>{
-  storeLocal(payload);
-  setStatus('Saved ✓','ok');
-  btn.textContent='Saved ✓';
-  refreshAnnotations();
-  setTimeout(()=>{ closeModal(); renderValidateTable(); }, 1200);
-})
-.catch(err=>{
-  setStatus('Error: '+err.message+' (saved locally as backup)','err');
-  storeLocal(payload);
-  btn.disabled=false; btn.textContent='Retry';
-});
-.then(r=>r.json())
-  .then(res=>{
-    if(res.ok){
-      storeLocal(payload);
-      setStatus('Saved to sheet ✓','ok');
-      btn.textContent='Saved ✓';
-      refreshAnnotations();
-      setTimeout(()=>{ closeModal(); renderValidateTable(); }, 1200);
-    } else {
-      throw new Error(res.error||'Unknown error');
-    }
+  .then(()=>{
+    storeLocal(payload);
+    setStatus('Saved to sheet','ok');
+    btn.textContent='Saved';
+    refreshAnnotations();
+    setTimeout(()=>{ closeModal(); renderValidateTable(); }, 1200);
   })
   .catch(err=>{
-    setStatus('Error: '+err.message+' (saved locally as backup)','err');
+    setStatus('Error: '+err.message,'err');
     storeLocal(payload);
-    btn.disabled=false; btn.textContent='Retry';
+    btn.disabled=false;
+    btn.textContent='Retry';
   });
 }
-
+ 
 function storeLocal(payload){
   // Mirror to ANNOTATIONS in memory so table refreshes immediately
   const ts=new Date().toISOString();
