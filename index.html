@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UCL Space Explorer</title>
 <style>
+  .campus-filter-bar{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem 1.2rem;padding:.6rem 1rem;background:var(--bg1);border:1px solid var(--bdr);border-radius:6px;margin-bottom:.75rem;font-size:13px;}
+  .campus-filter-bar .lbl{font-weight:600;margin-right:.4rem;}
+  .campus-summary{margin-left:auto;font-size:12px;font-style:italic;color:var(--tx2);}
+  tr.campus-hidden{display:none;}
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg0:#ffffff;--bg1:#f5f4f0;--bg2:#eeecea;
@@ -46,7 +51,6 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:#378ADD}
 
 .toggle-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;
   background:var(--bg1);border-radius:var(--r8);padding:.5rem .75rem}
-.norm-checks{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
 .titem{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer}
 .tlabel{font-size:12px;color:var(--tx1);margin-right:4px}
 
@@ -92,43 +96,6 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:#378ADD}
 .badge-rated{background:#EAF3DE;color:#3B6D11}
 .note-sm{font-size:11px;color:var(--tx2);margin-top:.5rem}
 .note{font-size:11px;color:var(--tx2);margin-top:.4rem;font-style:italic}
-.bench-wrap{margin-bottom:1rem}
-/* profile pane */
-.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem}
-.prof-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:.9rem;flex-wrap:wrap}
-.prof-ctrl label{font-size:12px;color:var(--tx1)}
-.dist-bars{display:flex;flex-direction:column;gap:6px}
-.dist-row{display:flex;align-items:center;gap:8px}
-.dist-lbl{font-size:11px;color:var(--tx1);width:80px;min-width:80px;text-align:right}
-.dist-track{flex:1;height:20px;background:var(--bg1);border-radius:3px;overflow:hidden;position:relative}
-.dist-seg-small{height:100%;float:left;background:#378ADD;opacity:.8}
-.dist-seg-large{height:100%;float:left;background:#1D9E75}
-.dist-val{font-size:10px;color:var(--tx1);min-width:60px}
-.dist-lgd{display:flex;gap:12px;font-size:11px;color:var(--tx1);margin-top:.5rem}
-.lpp-row{display:flex;align-items:center;gap:6px}
-.lpp-lbl{width:160px;min-width:160px;font-size:11px;text-align:right;color:var(--tx1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lpp-lbl.focus{color:var(--tx0);font-weight:500}
-.lpp-track{flex:1;height:16px;background:var(--bg1);border-radius:2px;overflow:hidden;display:flex}
-.lpp-seg-s{height:100%;background:#378ADD;opacity:.75}
-.lpp-seg-l{height:100%;background:#1D9E75}
-.lpp-val{font-size:10px;color:var(--tx1);min-width:40px}
-.lpp-val.focus{color:var(--tx0);font-weight:500}
-@media(max-width:640px){.profile-grid{grid-template-columns:1fr}}
-.rep-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:.6rem;flex-wrap:wrap}
-.rep-ctrl label{font-size:12px;color:var(--tx1)}
-.rep-ctrl select{width:auto}
-.rf{font-size:11px;font-weight:500;min-width:36px;text-align:right;flex-shrink:0;border-radius:4px;padding:1px 5px}
-.rf-red{background:#FDECEA;color:#A32D2D}
-.rf-amber{background:#FEF3E2;color:#854F0B}
-.rf-green{background:#EAF3DE;color:#3B6D11}
-.bench-wrap h4{font-size:12px;font-weight:500;color:var(--tx1);margin-bottom:.5rem}
-table.bench-tbl{width:100%;border-collapse:collapse;font-size:12px}
-table.bench-tbl th{text-align:left;padding:5px 8px;font-weight:500;color:var(--tx1);
-  border-bottom:1px solid var(--br1);background:var(--bg1);white-space:nowrap}
-table.bench-tbl td{padding:5px 8px;border-bottom:0.5px solid var(--br1);color:var(--tx0)}
-table.bench-tbl td:nth-child(2){font-weight:500;text-align:right;padding-right:1.5rem}
-table.bench-tbl tr:last-child td{border-bottom:none}
-.bench-note{font-size:11px;color:var(--tx2);margin-top:.6rem;font-style:italic;line-height:1.5}
 .no-data{font-size:12px;color:var(--tx1);padding:.4rem 0;font-style:italic}
 
 /* ── VALIDATE TAB ── */
@@ -143,10 +110,6 @@ table.bench-tbl tr:last-child td{border-bottom:none}
 table.space-tbl{width:100%;border-collapse:collapse;font-size:12px}
 table.space-tbl th{text-align:left;padding:6px 8px;font-weight:500;color:var(--tx1);
   border-bottom:1px solid var(--br1);white-space:nowrap;background:var(--bg1)}
-table.space-tbl th.sortable{cursor:pointer;user-select:none}
-table.space-tbl th.sortable:hover{color:var(--tx0)}
-table.space-tbl th.sort-asc::after{content:' ↑';font-size:10px}
-table.space-tbl th.sort-desc::after{content:' ↓';font-size:10px}
 table.space-tbl td{padding:5px 8px;border-bottom:0.5px solid var(--br1);vertical-align:middle}
 table.space-tbl tr:hover td{background:var(--bg1)}
 table.space-tbl .act-btn{font-size:11px;padding:3px 8px;border:0.5px solid var(--br2);
@@ -210,7 +173,6 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
 
     <div class="tabs">
       <button class="tab active" data-pane="explore">Explore</button>
-      <button class="tab" data-pane="profile">Lab profile</button>
       <button class="tab" data-pane="validate">Validate &amp; rate spaces</button>
     </div>
 
@@ -224,16 +186,15 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
             <option value="faculty">Same faculty</option>
             <option value="lab">All depts with tech space</option>
           </select></div>
-        <div class="ctrl">
-          <span class="lbl">Normalise by <span id="norm-label" style="color:var(--tx0);font-weight:500"></span></span>
-          <div class="norm-checks" id="norm-checks">
-            <label class="titem"><input type="checkbox" class="norm-cb" value="ac_res"> Staff (ac+res FTE)</label>
-            <label class="titem"><input type="checkbox" class="norm-cb" value="pgr"> PGR</label>
-            <label class="titem"><input type="checkbox" class="norm-cb" value="intake"> UG intake</label>
-            <label class="titem"><input type="checkbox" class="norm-cb" value="pgt"> PGT</label>
-          </div>
-          <span class="note-sm" style="margin-top:3px;display:block">tick any combination · unticked = absolute m²</span>
-        </div>
+        <div class="ctrl"><span class="lbl">Normalise by</span>
+          <select id="sel-norm">
+            <option value="raw">Absolute (m²)</option>
+            <option value="ac_res">Academic + research staff FTE</option>
+            <option value="pgr">PGR students</option>
+            <option value="intake">UG intake</option>
+            <option value="pgt">PGT students</option>
+            <option value="ug_pgt">UG + PGT combined</option>
+          </select></div>
       </div>
       <div class="toggle-row">
         <span class="tlabel">Include:</span>
@@ -252,84 +213,7 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
       <div class="chart-grid">
         <div class="cbox"><h3>Space breakdown — focus dept</h3><div id="breakdown"></div></div>
         <div class="cbox"><h3>Category mix</h3><div id="stack"></div></div>
-        <div class="cbox full">
-          <h3 id="compare-h">Comparison</h3>
-          <div class="rep-ctrl" id="rep-ctrl" style="display:none">
-            <label>Repetition factor benchmark:</label>
-            <select id="sel-bench">
-              <option value="4.6">Safety minimum — 4.6 m²/student (NFPA 101)</option>
-              <option value="6" selected>UCL estates norm — 6.0 m²/student</option>
-              <option value="11.1">US planning standard — 11.1 m²/student (FICM)</option>
-              <option value="16.7">Upper range (heavy equipment) — 16.7 m²/student (FICM)</option>
-            </select>
-          </div>
-          <div id="compare"></div>
-        </div>
-      </div>
-
-      <!-- benchmark reference table -->
-      <div class="bench-wrap" id="bench-wrap" style="display:none">
-        <h4>Space benchmark reference — teaching labs &amp; workshops per student</h4>
-        <table class="bench-tbl">
-          <thead><tr>
-            <th>Level</th><th>m² / student</th><th>Source / basis</th>
-          </tr></thead>
-          <tbody>
-            <tr><td>Safety minimum</td><td>4.6</td><td>NFPA 101 Life Safety Code — fire/occupancy floor</td></tr>
-            <tr><td>UCL estates norm</td><td>6.0</td><td>UCL Space Standards Guidelines (2018) — general lab planning norm</td></tr>
-            <tr><td>US planning standard (engineering)</td><td>11.1</td><td>FICM / UConn Space Planning Guidelines — recommended engineering station allowance (120 ASF)</td></tr>
-            <tr><td>Upper range (heavy equipment)</td><td>16.7</td><td>FICM high end for engineering — large apparatus, workshops (180 ASF)</td></tr>
-          </tbody>
-        </table>
-        <p class="bench-note">No UK-specific pedagogical minimum for engineering teaching labs is formally published by IMechE, IChemE or AUDE. Figures above are the closest available reference points. Values apply to teaching lab and workshop space only; normalised against the selected student cohort (UG intake, PGT, or UG+PGT). Staff FTE and absolute m² views do not show this table.</p>
-      </div>
-
-    </div>
-
-    <!-- ═══ PROFILE PANE ═══ -->
-    <div class="pane" id="pane-profile">
-
-      <div class="prof-ctrl">
-        <label>Department</label><select id="p-dept"></select>
-        <label style="margin-left:8px">Compare against</label>
-        <select id="p-scope">
-          <option value="fes">Faculty of Engineering Science</option>
-          <option value="faculty">Same faculty</option>
-          <option value="lab">All depts with tech space</option>
-        </select>
-        <label style="margin-left:8px">Small / med-large threshold</label>
-        <select id="p-thresh">
-          <option value="20" selected>&lt; 20 m² / ≥ 20 m²</option>
-          <option value="50">&lt; 50 m² / ≥ 50 m²</option>
-          <option value="100">&lt; 100 m² / ≥ 100 m²</option>
-        </select>
-      </div>
-
-      <div class="profile-grid">
-
-        <!-- labs per professor -->
-        <div class="cbox full">
-          <h3>Labs per professor (Level 10) — small vs med-large</h3>
-          <div id="lpp-chart"><div class="no-data">Select a department</div></div>
-          <div class="dist-lgd" style="margin-top:.75rem">
-            <span><span class="ldot" style="background:#378ADD;opacity:.75"></span>Small (&lt; threshold)</span>
-            <span><span class="ldot" style="background:#1D9E75"></span>Med-large (≥ threshold)</span>
-            <span style="color:var(--tx2);font-style:italic">· departments without Level 10 FTE data are omitted</span>
-          </div>
-        </div>
-
-        <!-- size distribution: focus dept -->
-        <div class="cbox">
-          <h3>Size distribution — <span id="dist-dept-name">focus dept</span></h3>
-          <div id="dist-chart"><div class="no-data">Select a department</div></div>
-        </div>
-
-        <!-- size distribution: comparison -->
-        <div class="cbox">
-          <h3>Size distribution — comparison group medians</h3>
-          <div id="dist-compare"><div class="no-data">Select a department</div></div>
-        </div>
-
+        <div class="cbox full"><h3 id="compare-h">Comparison</h3><div id="compare"></div></div>
       </div>
     </div>
 
@@ -352,20 +236,23 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
         <span class="saved" id="user-saved"></span>
       </div>
 
+      <div class="campus-filter-bar">
+        <span class="lbl">Show campuses:</span>
+        <label><input type="checkbox" class="campus-cb" value="Bloomsbury" checked> Bloomsbury</label>
+        <label><input type="checkbox" class="campus-cb" value="Outer Bloomsbury" checked> Outer Bloomsbury</label>
+        <label><input type="checkbox" class="campus-cb" value="Satellite" checked> Satellite</label>
+        <label><input type="checkbox" class="campus-cb" value="UCL East" checked> UCL East</label>
+        <span class="campus-summary" id="campus-summary"></span>
+      </div>
+
       <div class="panel">
         <h3 id="v-panel-title">Spaces</h3>
         <div id="ann-loading" class="no-data">Loading annotations…</div>
         <div class="space-table-wrap" id="space-table-wrap" style="display:none">
           <table class="space-tbl">
-            <thead id="space-thead"><tr>
-              <th class="sortable" data-col="room">Room</th>
-              <th class="sortable" data-col="name">Space name</th>
-              <th class="sortable" data-col="bldg">Building</th>
-              <th class="sortable" data-col="type">Type</th>
-              <th class="sortable" data-col="use">Use</th>
-              <th class="sortable" data-col="eff" style="text-align:right">m²</th>
-              <th class="sortable" data-col="ann">Annotations</th>
-              <th></th>
+            <thead><tr>
+              <th>Space</th><th>Building</th><th>Type</th><th>Use</th>
+              <th>m²</th><th>Annotations</th><th></th>
             </tr></thead>
             <tbody id="space-tbody"></tbody>
           </table>
@@ -388,7 +275,7 @@ table.space-tbl .act-btn.rate{border-color:#1D9E75;color:#1D9E75}
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 // Paste your Apps Script web app URL here after deploying
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec';
+const SHEET_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 // ────────────────────────────────────────────────────────────────────────────
 
 const COLORS = {tl:'#378ADD',tw:'#BA7517',tc:'#534AB7',rl:'#1D9E75',rw:'#885533'};
@@ -447,38 +334,18 @@ function inclTotal(vals){
   const f=getInclFlags();
   return (f.tl?vals.tl:0)+(f.tw?vals.tw:0)+(f.tc?vals.tc:0)+(f.rl?vals.rl:0)+(f.rw?vals.rw:0);
 }
-// Returns array of checked norm keys e.g. ['ac_res','pgr']
-function getNormKeys(){
-  return [...document.querySelectorAll('.norm-cb:checked')].map(cb=>cb.value);
-}
-// Sum of FTE denominators across selected keys for a dept
-function getFTEDenominator(dept, keys){
-  if(!keys.length) return null;
+function getNorm(dept,norm,vals){
   const fte=(DATA.depts[dept]||{}).fte||{};
-  const KEY_MAP={ac_res:'ac_res',pgr:'pgr',intake:'intake',pgt:'pgt'};
-  let total=0, anyFound=false;
-  for(const k of keys){
-    const v=fte[KEY_MAP[k]];
-    if(v&&v>0){ total+=v; anyFound=true; }
-  }
-  return anyFound ? total : null;
+  if(norm==='raw') return inclTotal(vals);
+  let n;
+  if(norm==='ac_res') n=fte.ac_res; else if(norm==='pgr') n=fte.pgr;
+  else if(norm==='intake') n=fte.intake; else if(norm==='pgt') n=fte.pgt;
+  else if(norm==='ug_pgt') n=(fte.intake||0)+(fte.pgt||0);
+  return (!n||n<=0) ? null : inclTotal(vals)/n;
 }
-function getNorm(dept, keys, vals){
-  const raw=inclTotal(vals);
-  if(!keys||!keys.length) return raw;
-  const denom=getFTEDenominator(dept,keys);
-  return denom ? raw/denom : null;
-}
-function fmt(v, keys){
+function fmt(v,norm){
   if(v===null) return '—';
-  if(!keys||!keys.length) return Math.round(v).toLocaleString()+' m²';
-  return (Math.round(v*10)/10)+' m²/FTE';
-}
-// Human-readable label for the active norm selection
-function normLabel(keys){
-  if(!keys||!keys.length) return '';
-  const names={ac_res:'staff',pgr:'PGR',intake:'UG',pgt:'PGT'};
-  return '/ '+keys.map(k=>names[k]).join('+');
+  return norm==='raw' ? Math.round(v).toLocaleString()+' m²' : (Math.round(v*10)/10)+' m²/FTE';
 }
 function getScope(scope,dept){
   const fac=(DATA.depts[dept]||{}).fac;
@@ -497,6 +364,9 @@ function renderExcl(dept){
     document.getElementById('excl-note').textContent=''; return;
   }
   listEl.innerHTML='';
+  const checkedCampuses = new Set([...document.querySelectorAll(".campus-cb:checked")].map(cb=>cb.value));
+  const summaryEl = document.getElementById("campus-summary");
+  if(summaryEl){ const vis=info.spaces.filter(s=>checkedCampuses.has(s.campus||"Bloomsbury")); summaryEl.textContent=checkedCampuses.size===4 ? vis.length+" spaces" : vis.length+" of "+info.spaces.length+" shown"; }
   info.spaces.forEach(s=>{
     const key=dept+'|'+s.uid;
     const bc=s.teach&&s.res?'bt-both':s.teach?'bt-teach':'bt-res';
@@ -519,44 +389,32 @@ function updateExclNote(dept){
     exEff>0?`Excluding ${Math.round(exEff)} m² of ${Math.round(totEff)} m² listed`
            :`${info.spaces.length} spaces listed · none excluded`;
 }
-function ragClass(rf){
-  if(rf===null) return '';
-  if(rf>=2.0) return 'rf-red';
-  if(rf>=1.0) return 'rf-amber';
-  return 'rf-green';
-}
-function renderBars(id,items,keys,benchVal){
+function renderBars(id,items,norm){
   if(!items.length){ document.getElementById(id).innerHTML='<div class="no-data">No data for this selection</div>'; return; }
   const mx=Math.max(...items.map(x=>x.v),1);
-  const showRF = benchVal!=null && keys.includes('intake');
-  document.getElementById(id).innerHTML=`<div class="bar-chart">${items.map(x=>{
-    const rf = (showRF && x.v!==null && x.v>0) ? benchVal/x.v : null;
-    const rfDisplay = rf!==null ? (Math.round(rf*100)/100)+'×' : '';
-    const rfCls = ragClass(rf);
-    return `<div class="bar-row">
-      <div class="bl ${x.f?'focus':''}" title="${x.d}">${shortName(x.d)}${x.f?' ◀':''}</div>
-      <div class="bt"><div class="bf" style="width:${Math.round(x.v/mx*100)}%;background:${x.f?'#185FA5':'#1D9E75'}"></div></div>
-      <span class="bv ${x.f?'focus':''}">${fmt(x.v,keys)}</span>
-      ${showRF?`<span class="rf ${rfCls}" title="Sessions needed to teach whole UG cohort at this benchmark">${rfDisplay}</span>`:''}
-    </div>`;
-  }).join('')}</div>`;
+  document.getElementById(id).innerHTML=`<div class="bar-chart">${items.map(x=>`<div class="bar-row">
+    <div class="bl ${x.f?'focus':''}" title="${x.d}">${shortName(x.d)}${x.f?' ◀':''}</div>
+    <div class="bt"><div class="bf" style="width:${Math.round(x.v/mx*100)}%;background:${x.f?'#185FA5':'#1D9E75'}"></div></div>
+    <span class="bv ${x.f?'focus':''}">${fmt(x.v,norm)}</span>
+  </div>`).join('')}</div>`;
 }
 function render(){
   const dept=document.getElementById('sel-dept').value;
   const scope=document.getElementById('sel-scope').value;
-  const keys=getNormKeys();
+  const norm=document.getElementById('sel-norm').value;
   if(!dept||!DATA.depts[dept]) return;
   renderExcl(dept);
   const vals=computeTech(dept); const f=getInclFlags(); const fte=(DATA.depts[dept]||{}).fte||{};
   const teachTot=(f.tl?vals.tl:0)+(f.tw?vals.tw:0)+(f.tc?vals.tc:0);
   const resTot=(f.rl?vals.rl:0)+(f.rw?vals.rw:0);
-  const normVal=getNorm(dept,keys,vals);
-  const normLbl=keys.length?'m² '+normLabel(keys).replace('/ ','/ per '):'Tech space (m²)';
+  const normVal=getNorm(dept,norm,vals);
+  const normLbl=norm==='raw'?'Tech space (m²)':norm==='ac_res'?'m² / staff FTE':
+    norm==='pgr'?'m² / PGR':norm==='pgt'?'m² / PGT':norm==='intake'?'m² / UG intake':'m² / UG+PGT';
   document.getElementById('metrics').innerHTML=`
     <div class="mc"><div class="l">Teaching tech space</div><div class="v">${Math.round(teachTot).toLocaleString()}</div><div class="s">m²</div></div>
     <div class="mc"><div class="l">Research tech space</div><div class="v">${Math.round(resTot).toLocaleString()}</div><div class="s">m²</div></div>
-    <div class="mc"><div class="l">${normLbl}</div><div class="v">${!keys.length?Math.round(inclTotal(vals)).toLocaleString():normVal!==null?(Math.round(normVal*10)/10):'—'}</div>
-      <div class="s">${!keys.length?'absolute total':normVal!==null?'normalised':'no FTE data'}</div></div>
+    <div class="mc"><div class="l">${normLbl}</div><div class="v">${norm==='raw'?Math.round(inclTotal(vals)).toLocaleString():normVal!==null?(Math.round(normVal*10)/10):'—'}</div>
+      <div class="s">${norm==='raw'?'selected total':normVal!==null?'normalised':'no FTE data'}</div></div>
     <div class="mc"><div class="l">Ac+res staff FTE</div><div class="v">${fte.ac_res||'—'}</div>
       <div class="s">${[fte.pgr?fte.pgr+' PGR':'',fte.intake?fte.intake+' UG intake':''].filter(Boolean).join(' · ')||'no FTE data'}</div></div>`;
   const cats=[
@@ -575,95 +433,55 @@ function render(){
     <div class="lgd">${cats.map(c=>`<span><span class="ldot" style="background:${c.c}"></span>${c.l} ${Math.round(c.v/allV*100)}%</span>`).join('')}</div>`
     :'<div class="no-data">No categories selected</div>';
   const scopeDepts=getScope(scope,dept);
-  const items=scopeDepts.map(d=>({d,v:getNorm(d,keys,computeTech(d)),f:d===dept}))
+  const items=scopeDepts.map(d=>({d,v:getNorm(d,norm,computeTech(d)),f:d===dept}))
     .filter(x=>x.v!==null&&x.v>=0).sort((a,b)=>b.v-a.v);
   const top=items.slice(0,18);
-  const normH=keys.length?'m² per '+keys.map(k=>({ac_res:'staff FTE',pgr:'PGR',intake:'UG intake',pgt:'PGT'})[k]).join('+'):'Technical space (m²)';
+  const normH={raw:'Technical space (m²)',ac_res:'m² per academic/research FTE',pgr:'m² per PGR student',
+    intake:'m² per UG intake',pgt:'m² per PGT student',ug_pgt:'m² per UG+PGT student'}[norm];
   document.getElementById('compare-h').textContent=normH;
-  // Update norm label in control
-  document.getElementById('norm-label').textContent=keys.length?'('+keys.map(k=>({ac_res:'staff',pgr:'PGR',intake:'UG',pgt:'PGT'})[k]).join('+')+'FTE)':'(absolute)';
-  // Repetition factor: only meaningful when UG intake is included as a denominator
-  const studentKeys = ['intake','pgt','ug_pgt'];
-  const activeKeys = getNormKeys();
-  const isStudentNorm = activeKeys.length > 0 && activeKeys.every(k => studentKeys.includes(k));
-  const teachingIncluded = document.getElementById('inc-tl').checked || document.getElementById('inc-tw').checked || document.getElementById('inc-tc').checked;
-  const hasUGIntake = activeKeys.includes('intake');
-
-  // Show/hide rep-ctrl selector and benchmark table
-  const showRep = hasUGIntake && teachingIncluded;
-  document.getElementById('rep-ctrl').style.display = showRep ? 'flex' : 'none';
-  document.getElementById('bench-wrap').style.display = (isStudentNorm && teachingIncluded) ? 'block' : 'none';
-
-  // Pass bench value to renderBars if applicable
-  const benchVal = showRep ? parseFloat(document.getElementById('sel-bench').value) : null;
-  renderBars('compare',top,keys,benchVal);
-  if(items.length>18) document.getElementById('compare').innerHTML+=`<p class="note">Top 18 of ${items.length} depts${keys.length?' with FTE data':''}</p>`;
+  renderBars('compare',top,norm);
+  if(items.length>18) document.getElementById('compare').innerHTML+=`<p class="note">Top 18 of ${items.length} depts${norm!=='raw'?' with FTE data':''}</p>`;
 }
 
 // ── VALIDATE PANE ────────────────────────────────────────────────────────────
 function amendsFor(uid){ return ANNOTATIONS.amendments.filter(a=>a.space_uid===uid); }
 function ratingsFor(uid){ return ANNOTATIONS.ratings.filter(a=>a.space_uid===uid); }
 
-// sort state for validate table
-let vSort = {col: 'eff', dir: 'desc'};
-
 function renderValidateTable(){
+  document.querySelectorAll(".campus-cb").forEach(cb=>cb.addEventListener("change",renderValidateTable));
   const dept=document.getElementById('v-dept').value;
   if(!dept||!DATA.depts[dept]) return;
   document.getElementById('v-panel-title').textContent='Spaces — '+shortName(dept);
   const info=DATA.depts[dept];
   const tbody=document.getElementById('space-tbody');
   tbody.innerHTML='';
-
   if(!info.spaces||!info.spaces.length){
-    tbody.innerHTML='<tr><td colspan="8" class="no-data" style="padding:.75rem">No tech spaces recorded for this department</td></tr>';
+    tbody.innerHTML='<tr><td colspan="7" class="no-data" style="padding:.75rem">No tech spaces recorded for this department</td></tr>';
     document.getElementById('space-table-wrap').style.display='block';
     document.getElementById('ann-loading').style.display='none';
     return;
   }
-
-  // Enrich spaces with derived fields for sorting/display
-  const enriched = info.spaces.map(s=>{
-    const room = s.uid.includes('||') ? s.uid.split('||')[0] : s.uid;
-    const bldg = s.uid.includes('||') ? s.uid.split('||').slice(1).join('||') : '—';
-    const typeLabel = s.cat==='workshop' ? 'Workshop' : s.cat==='computer' ? 'Computer lab' :
-      s.func==='Teaching' ? 'Teaching lab' : 'Research lab';
-    const use = s.teach&&s.res ? 'both' : s.teach ? 'teaching' : 'research';
-    const aCount = amendsFor(s.uid).length;
-    const rCount = ratingsFor(s.uid).length;
-    const annCount = aCount + rCount;
-    // Strip the [Building] prefix from lbl for the name column
-    const name = s.lbl.replace(/^\[[^\]]+\]\s*/, '');
-    return {...s, room, bldg, typeLabel, use, aCount, rCount, annCount, name};
-  });
-
-  // Sort
-  const col = vSort.col;
-  const dir = vSort.dir === 'asc' ? 1 : -1;
-  enriched.sort((a, b) => {
-    let av, bv;
-    if(col==='eff' || col==='ann'){ av = col==='eff' ? a.eff : a.annCount; bv = col==='eff' ? b.eff : b.annCount; return dir * (av - bv); }
-    av = (col==='room'?a.room : col==='name'?a.name : col==='bldg'?a.bldg : col==='type'?a.typeLabel : a.use) || '';
-    bv = (col==='room'?b.room : col==='name'?b.name : col==='bldg'?b.bldg : col==='type'?b.typeLabel : b.use) || '';
-    return dir * av.localeCompare(bv);
-  });
-
-  // Update header indicators
-  document.querySelectorAll('#space-thead th.sortable').forEach(th=>{
-    th.classList.remove('sort-asc','sort-desc');
-    if(th.dataset.col === col) th.classList.add(vSort.dir==='asc'?'sort-asc':'sort-desc');
-  });
-
-  enriched.forEach(s=>{
+  info.spaces.forEach(s=>{
+    const aCount=amendsFor(s.uid).length;
+    const rCount=ratingsFor(s.uid).length;
+    const use=s.teach&&s.res?'both':s.teach?'teaching':'research';
     const tr=document.createElement('tr');
-    const pillsHTML=(s.aCount?`<span class="ann-pill badge-amend">${s.aCount} amend${s.aCount>1?'s':''}</span>`:'')+
-                    (s.rCount?`<span class="ann-pill badge-rated">${s.rCount} rating${s.rCount>1?'s':''}</span>`:'');
+    if(!checkedCampuses.has(s.campus||"Bloomsbury")) tr.classList.add("campus-hidden");
+
+    // bldg is encoded in uid as "spacenum||Building Name"
+    const bldg=s.uid.includes('||')?s.uid.split('||').slice(1).join('||'):'—';
+    // friendly type label from cat + func
+    const typeLabel=s.cat==='workshop'?'Workshop':s.cat==='computer'?'Computer lab':
+      s.func==='Teaching'?'Teaching lab':'Research lab';
+
+    const pillsHTML=(aCount?`<span class="ann-pill badge-amend">${aCount} amendment${aCount>1?'s':''}</span>`:'')+
+                    (rCount?`<span class="ann-pill badge-rated">${rCount} rating${rCount>1?'s':''}</span>`:'');
+
     tr.innerHTML=`
-      <td style="color:var(--tx2);font-family:monospace;font-size:11px">${s.room}</td>
-      <td>${s.name}</td>
-      <td style="color:var(--tx1)">${s.bldg}</td>
-      <td style="color:var(--tx1);white-space:nowrap">${s.typeLabel}</td>
-      <td><span class="badge ${s.use==='both'?'bt-both':s.use==='teaching'?'bt-teach':'bt-res'}">${s.use}</span></td>
+      <td>${s.lbl}</td>
+      <td style="color:var(--tx1)">${bldg}</td>
+      <td style="color:var(--tx1);white-space:nowrap">${typeLabel}</td>
+      <td><span class="badge ${use==='both'?'bt-both':use==='teaching'?'bt-teach':'bt-res'}">${use}</span></td>
       <td style="text-align:right">${Math.round(s.eff)}</td>
       <td>${pillsHTML||'<span style="color:var(--tx2);font-size:11px">none</span>'}</td>
       <td style="white-space:nowrap">
@@ -673,7 +491,7 @@ function renderValidateTable(){
     tbody.appendChild(tr);
   });
 
-  // Button listeners
+  // Attach button listeners after DOM is built
   tbody.querySelectorAll('.act-btn').forEach(btn=>{
     btn.addEventListener('click',function(){
       const uid=this.dataset.uid;
@@ -686,22 +504,6 @@ function renderValidateTable(){
 
   document.getElementById('space-table-wrap').style.display='block';
   document.getElementById('ann-loading').style.display='none';
-}
-
-function initSortHeaders(){
-  document.getElementById('space-thead').addEventListener('click', function(e){
-    const th = e.target.closest('th.sortable');
-    if(!th) return;
-    const col = th.dataset.col;
-    if(vSort.col === col){
-      vSort.dir = vSort.dir === 'asc' ? 'desc' : 'asc';
-    } else {
-      vSort.col = col;
-      // default: desc for numeric, asc for text
-      vSort.dir = (col==='eff'||col==='ann') ? 'desc' : 'asc';
-    }
-    renderValidateTable();
-  });
 }
 
 // ── AMEND MODAL ──────────────────────────────────────────────────────────────
@@ -843,28 +645,42 @@ function openRateModal(dept, space, lbl){
 // ── SUBMIT ───────────────────────────────────────────────────────────────────
 function submitAnnotation(payload){
   const btn=document.getElementById('modal-submit');
-  btn.disabled=true; btn.textContent='Saving...';
-  fetch(SHEET_URL, {
-    method:'POST',
-    mode:'no-cors',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify(payload)
-  })
-  .then(()=>{
+  btn.disabled=true; btn.textContent='Saving…';
+
+  if(!SHEET_URL||SHEET_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
+    // Demo mode — store locally only
     storeLocal(payload);
-    setStatus('Saved to sheet','ok');
-    btn.textContent='Saved';
+    setStatus('Saved locally (no sheet configured — demo mode)','ok');
+    btn.textContent='Saved ✓';
     refreshAnnotations();
     setTimeout(()=>{ closeModal(); renderValidateTable(); }, 1200);
+    return;
+  }
+
+  fetch(SHEET_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.ok){
+      storeLocal(payload);
+      setStatus('Saved to sheet ✓','ok');
+      btn.textContent='Saved ✓';
+      refreshAnnotations();
+      setTimeout(()=>{ closeModal(); renderValidateTable(); }, 1200);
+    } else {
+      throw new Error(res.error||'Unknown error');
+    }
   })
   .catch(err=>{
-    setStatus('Error: '+err.message,'err');
+    setStatus('Error: '+err.message+' (saved locally as backup)','err');
     storeLocal(payload);
-    btn.disabled=false;
-    btn.textContent='Retry';
+    btn.disabled=false; btn.textContent='Retry';
   });
 }
- 
+
 function storeLocal(payload){
   // Mirror to ANNOTATIONS in memory so table refreshes immediately
   const ts=new Date().toISOString();
@@ -876,6 +692,7 @@ function storeLocal(payload){
 }
 
 function refreshAnnotations(){
+  if(!SHEET_URL||SHEET_URL==='YOUR_APPS_SCRIPT_URL_HERE') return;
   fetch(SHEET_URL+'?action=all')
     .then(r=>r.json())
     .then(d=>{ if(d.ok){ ANNOTATIONS=d; } })
@@ -895,144 +712,9 @@ function fmtDate(iso){
 }
 function stars(n){ return n?'★'.repeat(+n)+'☆'.repeat(5-(+n)):'—'; }
 
-// ── PROFILE PANE ─────────────────────────────────────────────────────────────
-
-function getProfileScope(scope, dept){
-  const fac=(DATA.depts[dept]||{}).fac;
-  if(scope==='fes') return DATA.fes.filter(d=>DATA.depts[d]);
-  if(scope==='faculty') return fac?Object.keys(DATA.depts).filter(d=>DATA.depts[d].fac===fac):Object.keys(DATA.depts);
-  return Object.keys(DATA.depts);
-}
-
-function spaceSizes(dept){
-  return (DATA.depts[dept]||{}).spaces||[];
-}
-
-function sizeBuckets(spaces, thresh){
-  const small = spaces.filter(s=>s.eff<thresh);
-  const large = spaces.filter(s=>s.eff>=thresh);
-  return {small, large,
-    nSmall: small.length, nLarge: large.length,
-    mSmall: small.length ? Math.round(small.reduce((a,s)=>a+s.eff,0)/small.length*10)/10 : null,
-    mLarge: large.length ? Math.round(large.reduce((a,s)=>a+s.eff,0)/large.length*10)/10 : null
-  };
-}
-
-// histogram bins for one dept
-function sizeHistogram(spaces){
-  const bins=[
-    {lbl:'5–9',lo:5,hi:10},
-    {lbl:'10–19',lo:10,hi:20},
-    {lbl:'20–49',lo:20,hi:50},
-    {lbl:'50–99',lo:50,hi:100},
-    {lbl:'100–199',lo:100,hi:200},
-    {lbl:'200+',lo:200,hi:Infinity}
-  ];
-  return bins.map(b=>({
-    ...b,
-    n: spaces.filter(s=>s.eff>=b.lo&&s.eff<b.hi).length,
-    m2: Math.round(spaces.filter(s=>s.eff>=b.lo&&s.eff<b.hi).reduce((a,s)=>a+s.eff,0))
-  }));
-}
-
-function renderProfile(){
-  const dept = document.getElementById('p-dept').value;
-  const scope = document.getElementById('p-scope').value;
-  const thresh = parseFloat(document.getElementById('p-thresh').value);
-  if(!dept||!DATA.depts[dept]) return;
-
-  document.getElementById('dist-dept-name').textContent = shortName(dept);
-
-  const scopeDepts = getProfileScope(scope, dept);
-
-  // ── Labs per professor chart ───────────────────────────────────────────────
-  const lppItems = scopeDepts.map(d=>{
-    const info = DATA.depts[d];
-    if(!info) return null;
-    const l10 = (info.fte||{}).level10;
-    if(!l10||l10<=0) return null;
-    const {nSmall,nLarge} = sizeBuckets(spaceSizes(d), thresh);
-    return {d, l10, nSmall, nLarge, total:nSmall+nLarge,
-      lppS: Math.round(nSmall/l10*10)/10,
-      lppL: Math.round(nLarge/l10*10)/10,
-      lpp:  Math.round((nSmall+nLarge)/l10*10)/10,
-      f: d===dept};
-  }).filter(Boolean).sort((a,b)=>b.lpp-a.lpp);
-
-  const maxLpp = Math.max(...lppItems.map(x=>x.lpp), 0.1);
-  const lppEl = document.getElementById('lpp-chart');
-
-  if(!lppItems.length){
-    lppEl.innerHTML='<div class="no-data">No departments with Level 10 FTE data in this scope</div>';
-  } else {
-    lppEl.innerHTML=`<div class="bar-chart" style="margin-top:.25rem">${lppItems.map(x=>{
-      const wS = Math.round(x.lppS/maxLpp*100);
-      const wL = Math.round(x.lppL/maxLpp*100);
-      return `<div class="lpp-row">
-        <div class="lpp-lbl ${x.f?'focus':''}" title="${x.d}">${shortName(x.d)}${x.f?' ◀':''}</div>
-        <div class="lpp-track">
-          <div class="lpp-seg-s" style="width:${wS}%" title="Small labs: ${x.nSmall} (${x.lppS}/prof)"></div>
-          <div class="lpp-seg-l" style="width:${wL}%" title="Med-large labs: ${x.nLarge} (${x.lppL}/prof)"></div>
-        </div>
-        <span class="lpp-val ${x.f?'focus':''}">${x.lpp}×</span>
-      </div>`;
-    }).join('')}</div>
-    <p class="note" style="margin-top:.5rem">Bar split: blue = small (<${thresh}m²), green = med-large (≥${thresh}m²) · value = total spaces per Level 10 professor</p>`;
-  }
-
-  // ── Size distribution: focus dept ─────────────────────────────────────────
-  const focusSpaces = spaceSizes(dept);
-  renderDistChart('dist-chart', focusSpaces, thresh, true);
-
-  // ── Size distribution: comparison medians ─────────────────────────────────
-  // For each bin, compute median count across scope depts
-  const bins = sizeHistogram(focusSpaces).map(b=>b); // just get bin defs
-  const compDists = scopeDepts.map(d=>sizeHistogram(spaceSizes(d)));
-
-  // median n per bin across scope
-  const medianDist = bins.map((b,i)=>{
-    const vals = compDists.map(dist=>dist[i].n).sort((a,z)=>a-z);
-    const mid = Math.floor(vals.length/2);
-    const median = vals.length%2===0 ? (vals[mid-1]+vals[mid])/2 : vals[mid];
-    return {...b, n:Math.round(median*10)/10};
-  });
-
-  renderDistChartData('dist-compare', medianDist, thresh, false);
-}
-
-function renderDistChart(id, spaces, thresh, isFocus){
-  renderDistChartData(id, sizeHistogram(spaces), thresh, isFocus);
-}
-
-function renderDistChartData(id, bins, thresh, isFocus){
-  const total = bins.reduce((a,b)=>a+b.n, 0);
-  const maxN = Math.max(...bins.map(b=>b.n), 0.1);
-  const el = document.getElementById(id);
-  if(total===0){ el.innerHTML='<div class="no-data">No spaces recorded</div>'; return; }
-
-  el.innerHTML=`<div class="dist-bars">${bins.map(b=>{
-    const isSmall = b.lo < thresh;
-    const col = isSmall ? '#378ADD' : '#1D9E75';
-    const op = isSmall ? 'opacity:.8' : '';
-    const w = Math.round(b.n/maxN*100);
-    const pct = total>0 ? Math.round(b.n/total*100) : 0;
-    const label = isFocus
-      ? `${b.n} space${b.n!==1?'s':''} (${pct}%)`
-      : `median ${b.n}`;
-    return `<div class="dist-row">
-      <div class="dist-lbl">${b.lbl} m²</div>
-      <div class="dist-track">
-        <div style="width:${w}%;height:100%;background:${col};${op}"></div>
-      </div>
-      <span class="dist-val">${label}</span>
-    </div>`;
-  }).join('')}</div>
-  <p class="note" style="margin-top:.4rem">${isFocus?`${total} spaces total · threshold at ${thresh}m²`:`Median counts across comparison group`}</p>`;
-}
-
 // ── INIT ─────────────────────────────────────────────────────────────────────
 function populateSelects(){
-  [document.getElementById('sel-dept'), document.getElementById('v-dept'), document.getElementById('p-dept')].forEach((sel,i)=>{
+  [document.getElementById('sel-dept'), document.getElementById('v-dept')].forEach((sel,i)=>{
     const g1=document.createElement('optgroup'); g1.label='Faculty of Engineering Science';
     DATA.fes.filter(d=>DATA.depts[d]).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=shortName(d);g1.appendChild(o);});
     sel.appendChild(g1);
@@ -1058,19 +740,15 @@ function init(data){
       this.classList.add('active');
       document.getElementById('pane-'+this.dataset.pane).classList.add('active');
       if(this.dataset.pane==='validate') renderValidateTable();
-      if(this.dataset.pane==='profile') renderProfile();
     });
   });
 
   // Explore listeners
-  ['sel-dept','sel-scope','sel-bench'].forEach(id=>document.getElementById(id).addEventListener('change',render));
-  document.querySelectorAll('.norm-cb').forEach(cb=>cb.addEventListener('change',render));
+  ['sel-dept','sel-scope','sel-norm'].forEach(id=>document.getElementById(id).addEventListener('change',render));
   ['inc-tl','inc-tw','inc-tc','inc-rl','inc-rw'].forEach(id=>document.getElementById(id).addEventListener('change',render));
 
   // Validate listeners
   document.getElementById('v-dept').addEventListener('change',renderValidateTable);
-  ['p-dept','p-scope','p-thresh'].forEach(id=>document.getElementById(id).addEventListener('change',renderProfile));
-  initSortHeaders();
   document.getElementById('u-name').addEventListener('change',saveUser);
   document.getElementById('u-role').addEventListener('change',saveUser);
 
@@ -1078,7 +756,7 @@ function init(data){
   document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
 
   // Load annotations then render
-  if(SHEET_URL && SHEET_URL!=='https://script.google.com/macros/s/AKfycbznqY8a9ci-JMep1TcdVwpitHr2vG7nWAYrgvjM-xf_tNgqymnNG3wkbjrcFLBESRNE3A/exec'){
+  if(SHEET_URL && SHEET_URL!=='YOUR_APPS_SCRIPT_URL_HERE'){
     fetch(SHEET_URL+'?action=all')
       .then(r=>r.json())
       .then(d=>{ if(d.ok) ANNOTATIONS=d; })
